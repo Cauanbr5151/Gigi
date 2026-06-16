@@ -5881,7 +5881,12 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 	Camera.Parent = Viewport
 	Viewport.CurrentCamera = Camera
 
-	local WorldModel = Instance.new("Model")
+local ok, err = pcall(function()
+    Instance.new("WorldModel")
+end)
+print("WorldModel suportado:", ok, err)
+
+	local WorldModel = Instance.new("WorldModel")
 	WorldModel.Name = "WorldModel"
 	WorldModel.Parent = Viewport
 
