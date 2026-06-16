@@ -5859,9 +5859,15 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 	})
 
 	Viewport.Parent = ViewportHolder
+	
+	print("Viewport criado")
+	print("Parent:", Viewport.Parent)
+	print("Size:", ViewportHolder.Size)
+	
 	Viewport.Position = UDim2.new(0,0,0,25)
-	Viewport.Size = UDim2.new(1,0,1,-30)
-	Viewport.BackgroundColor3 = Compkiller.Colors.BlockBackground
+	Viewport.Size = UDim2.new(1,-10,0,150)
+	
+	Viewport.BackgroundColor3 = Color3.fromRGB(255,0,0)
 	Viewport.BorderSizePixel = 0
 
 	table.insert(Compkiller.Elements.BlockBackground,{
