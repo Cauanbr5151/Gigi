@@ -5813,107 +5813,165 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 	end;
 	
 	function Args:AddViewport(Config)
-	print("[Viewport] 1 - entrou")
+	Config = Compkiller.__CONFIG(Config,{
+		Name = "Viewport",
+		Model = nil,
+		Height = 200,
+		Rotation = false,
+	})
 
-	local ok, err = pcall(function()
+	local ViewportHolder = Instance.new("Frame")
+	local BlockText = Instance.new("TextLabel")
+	local BlockLine = Instance.new("Frame")
+	local Viewport = Instance.new("ViewportFrame")
+	local Corner = Instance.new("UICorner")
 
-		print("[Viewport] 2")
+	ViewportHolder.Parent = Parent
+	ViewportHolder.BackgroundTransparency = 1
+	ViewportHolder.Size = UDim2.new(1,-1,0,Config.Height + 25)
+	ViewportHolder.ZIndex = Zindex
 
-		Config = Compkiller.__CONFIG(Config,{
-			Name = "Viewport",
-			Model = nil,
-			Height = 200,
-			Rotation = false,
-		})
+	BlockText.Parent = ViewportHolder
+	BlockText.BackgroundTransparency = 1
+	BlockText.Position = UDim2.new(0,0,0,0)
+	BlockText.Size = UDim2.new(1,0,0,20)
+	BlockText.Font = Enum.Font.GothamMedium
+	BlockText.Text = Config.Name
+	BlockText.TextSize = 13
+	BlockText.TextColor3 = Compkiller.Colors.SwitchColor
+	BlockText.TextXAlignment = Enum.TextXAlignment.Left
 
-		print("[Viewport] 3")
-		print("Parent =", Parent)
-		print("Signal =", Signal)
-		print("Zindex =", Zindex)
+	table.insert(Compkiller.Elements.SwitchColor,{
+		Element = BlockText,
+		Property = "TextColor3"
+	})
 
-		local ViewportHolder = Instance.new("Frame")
-		print("[Viewport] 4")
+	BlockLine.Parent = ViewportHolder
+	BlockLine.AnchorPoint = Vector2.new(0.5,1)
+	BlockLine.Position = UDim2.new(0.5,0,1,0)
+	BlockLine.Size = UDim2.new(1,-15,0,1)
+	BlockLine.BackgroundColor3 = Compkiller.Colors.LineColor
+	BlockLine.BorderSizePixel = 0
 
-		local BlockText = Instance.new("TextLabel")
-		local BlockLine = Instance.new("Frame")
-		local Viewport = Instance.new("ViewportFrame")
-		local Corner = Instance.new("UICorner")
+	table.insert(Compkiller.Elements.LineColor,{
+		Element = BlockLine,
+		Property = "BackgroundColor3"
+	})
 
-		print("[Viewport] 5")
+	Viewport.Parent = ViewportHolder
 
-		ViewportHolder.Parent = Parent
-		ViewportHolder.BackgroundTransparency = 1
-		ViewportHolder.Size = UDim2.new(1,-1,0,Config.Height + 25)
+	print("Viewport criado")
+	print("Parent:", Viewport.Parent)
+	print("Size:", ViewportHolder.Size)
 
-		if Zindex then
-			ViewportHolder.ZIndex = Zindex
+	Viewport.Position = UDim2.new(0,0,0,25)
+	Viewport.Size = UDim2.new(1,-10,0,150)
+
+	Viewport.BackgroundColor3 = Color3.fromRGB(255,0,0)
+	Viewport.BorderSizePixel = 0
+
+	table.insert(Compkiller.Elements.BlockBackground,{
+		Element = Viewport,
+		Property = "BackgroundColor3"
+	})
+
+	Corner.Parent = Viewport
+
+	local Camera = Instance.new("Camera")
+	Camera.Parent = Viewport
+	Viewport.CurrentCamera = Camera
+
+	local WorldModel = Instance.new("WorldModel")
+	WorldModel.Parent = Viewport
+
+	local CurrentModel
+
+	local function SetModel(Model)
+		WorldModel:ClearAllChildren()
+
+		if not Model then
+			return
 		end
 
-		print("[Viewport] 6")
+		local Clone = Model:Clone()
+		Clone.Parent = WorldModel
 
-		BlockText.Parent = ViewportHolder
-		BlockText.BackgroundTransparency = 1
-		BlockText.Position = UDim2.new(0,0,0,0)
-		BlockText.Size = UDim2.new(1,0,0,20)
-		BlockText.Font = Enum.Font.GothamMedium
-		BlockText.Text = Config.Name
-		BlockText.TextSize = 13
-		BlockText.TextColor3 = Compkiller.Colors.SwitchColor
-		BlockText.TextXAlignment = Enum.TextXAlignment.Left
+		CurrentModel = Clone
 
-		BlockLine.Parent = ViewportHolder
-		BlockLine.AnchorPoint = Vector2.new(0.5,1)
-		BlockLine.Position = UDim2.new(0.5,0,1,0)
-		BlockLine.Size = UDim2.new(1,-15,0,1)
-		BlockLine.BackgroundColor3 = Compkiller.Colors.LineColor
-		BlockLine.BorderSizePixel = 0
+		local CF, Size
 
-		Viewport.Parent = ViewportHolder
-		Viewport.Position = UDim2.new(0,0,0,25)
-		Viewport.Size = UDim2.new(1,-10,0,150)
-		Viewport.BackgroundColor3 = Color3.fromRGB(255,0,0)
-		Viewport.BorderSizePixel = 0
+		if Clone:IsA("Model") then
+			CF, Size = Clone:GetBoundingBox()
+		elseif Clone:IsA("BasePart") then
+			CF = Clone.CFrame
+			Size = Clone.Size
+		else
+			return
+		end
 
-		print("[Viewport] 7")
+		local Distance = math.max(Size.X, Size.Y, Size.Z) * 2
 
-		Corner.Parent = Viewport
+		Camera.CFrame = CFrame.new(
+			CF.Position + Vector3.new(0, Size.Y * 0.25, Distance),
+			CF.Position
+		)
+	end
 
-		local Camera = Instance.new("Camera")
-		Camera.Parent = Viewport
-		Viewport.CurrentCamera = Camera
+	if Config.Model then
+		SetModel(Config.Model)
+	end
 
-		local WorldModel = Instance.new("WorldModel")
-		WorldModel.Parent = Viewport
+	local RotationConnection
 
-		print("[Viewport] 8")
-
-		if Config.Model then
-			local Clone = Config.Model:Clone()
-			Clone.Parent = WorldModel
-
-			if Clone:IsA("BasePart") then
-				Camera.CFrame = CFrame.new(
-					Clone.Position + Vector3.new(0,0,15),
-					Clone.Position
-				)
+	if Config.Rotation then
+		RotationConnection = RunService.RenderStepped:Connect(function(dt)
+			if CurrentModel then
+				if CurrentModel:IsA("Model") then
+					CurrentModel:PivotTo(
+						CurrentModel:GetPivot()
+						* CFrame.Angles(0, math.rad(25 * dt), 0)
+					)
+				elseif CurrentModel:IsA("BasePart") then
+					CurrentModel.CFrame *= CFrame.Angles(0, math.rad(25 * dt), 0)
+				end
 			end
+		end)
+	end
+
+	local Ret = {}
+
+	function Ret:SetModel(Model)
+		SetModel(Model)
+	end
+
+	function Ret:GetViewport()
+		return Viewport
+	end
+
+	function Ret:GetCamera()
+		return Camera
+	end
+
+	function Ret:SetCamera(CFrameValue)
+		Camera.CFrame = CFrameValue
+	end
+
+	function Ret:Destroy()
+		if RotationConnection then
+			RotationConnection:Disconnect()
 		end
 
-		print("[Viewport] 9")
+		ViewportHolder:Destroy()
+	end
 
-		if Signal then
-			Signal:Connect(function(bool)
-				ViewportHolder.Visible = bool
-			end)
-		end
+	print("lowend")
 
-		print("[Viewport] 10")
+	Ret.Signal = Signal:Connect(function(bool)
+		ViewportHolder.Visible = bool
 	end)
 
-	if not ok then
-		warn("[Viewport ERROR]:", err)
-	end
-end;
+	return Ret
+end
     
 	function Args:AddDropdown(Config : Dropdown)
 		Config = Compkiller.__CONFIG(Config,{
