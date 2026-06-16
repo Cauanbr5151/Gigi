@@ -5813,165 +5813,107 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 	end;
 	
 	function Args:AddViewport(Config)
-	Config = Compkiller.__CONFIG(Config,{
-		Name = "Viewport",
-		Model = nil,
-		Height = 200,
-		Rotation = false,
-	})
+	print("[Viewport] 1 - entrou")
 
-	local ViewportHolder = Instance.new("Frame")
-	local BlockText = Instance.new("TextLabel")
-	local BlockLine = Instance.new("Frame")
-	local Viewport = Instance.new("ViewportFrame")
-	local Corner = Instance.new("UICorner")
+	local ok, err = pcall(function()
 
-	ViewportHolder.Parent = Parent
-	ViewportHolder.BackgroundTransparency = 1
-	ViewportHolder.Size = UDim2.new(1,-1,0,Config.Height + 25)
-	ViewportHolder.ZIndex = Zindex
+		print("[Viewport] 2")
 
-	BlockText.Parent = ViewportHolder
-	BlockText.BackgroundTransparency = 1
-	BlockText.Position = UDim2.new(0,0,0,0)
-	BlockText.Size = UDim2.new(1,0,0,20)
-	BlockText.Font = Enum.Font.GothamMedium
-	BlockText.Text = Config.Name
-	BlockText.TextSize = 13
-	BlockText.TextColor3 = Compkiller.Colors.SwitchColor
-	BlockText.TextXAlignment = Enum.TextXAlignment.Left
+		Config = Compkiller.__CONFIG(Config,{
+			Name = "Viewport",
+			Model = nil,
+			Height = 200,
+			Rotation = false,
+		})
 
-	table.insert(Compkiller.Elements.SwitchColor,{
-		Element = BlockText,
-		Property = "TextColor3"
-	})
+		print("[Viewport] 3")
+		print("Parent =", Parent)
+		print("Signal =", Signal)
+		print("Zindex =", Zindex)
 
-	BlockLine.Parent = ViewportHolder
-	BlockLine.AnchorPoint = Vector2.new(0.5,1)
-	BlockLine.Position = UDim2.new(0.5,0,1,0)
-	BlockLine.Size = UDim2.new(1,-15,0,1)
-	BlockLine.BackgroundColor3 = Compkiller.Colors.LineColor
-	BlockLine.BorderSizePixel = 0
+		local ViewportHolder = Instance.new("Frame")
+		print("[Viewport] 4")
 
-	table.insert(Compkiller.Elements.LineColor,{
-		Element = BlockLine,
-		Property = "BackgroundColor3"
-	})
+		local BlockText = Instance.new("TextLabel")
+		local BlockLine = Instance.new("Frame")
+		local Viewport = Instance.new("ViewportFrame")
+		local Corner = Instance.new("UICorner")
 
-	Viewport.Parent = ViewportHolder
-	
-	print("Viewport criado")
-	print("Parent:", Viewport.Parent)
-	print("Size:", ViewportHolder.Size)
-	
-	Viewport.Position = UDim2.new(0,0,0,25)
-	Viewport.Size = UDim2.new(1,-10,0,150)
-	
-	Viewport.BackgroundColor3 = Color3.fromRGB(255,0,0)
-	Viewport.BorderSizePixel = 0
+		print("[Viewport] 5")
 
-	table.insert(Compkiller.Elements.BlockBackground,{
-		Element = Viewport,
-		Property = "BackgroundColor3"
-	})
+		ViewportHolder.Parent = Parent
+		ViewportHolder.BackgroundTransparency = 1
+		ViewportHolder.Size = UDim2.new(1,-1,0,Config.Height + 25)
 
-	Corner.Parent = Viewport
-
-	local Camera = Instance.new("Camera")
-	Camera.Parent = Viewport
-	Viewport.CurrentCamera = Camera
-
-	local WorldModel = Instance.new("WorldModel")
-	WorldModel.Parent = Viewport
-
-	local CurrentModel
-
-	local function SetModel(Model)
-		WorldModel:ClearAllChildren()
-
-		if not Model then
-			return
+		if Zindex then
+			ViewportHolder.ZIndex = Zindex
 		end
 
-		local Clone = Model:Clone()
-		Clone.Parent = WorldModel
+		print("[Viewport] 6")
 
-		CurrentModel = Clone
+		BlockText.Parent = ViewportHolder
+		BlockText.BackgroundTransparency = 1
+		BlockText.Position = UDim2.new(0,0,0,0)
+		BlockText.Size = UDim2.new(1,0,0,20)
+		BlockText.Font = Enum.Font.GothamMedium
+		BlockText.Text = Config.Name
+		BlockText.TextSize = 13
+		BlockText.TextColor3 = Compkiller.Colors.SwitchColor
+		BlockText.TextXAlignment = Enum.TextXAlignment.Left
 
-		local CF, Size
+		BlockLine.Parent = ViewportHolder
+		BlockLine.AnchorPoint = Vector2.new(0.5,1)
+		BlockLine.Position = UDim2.new(0.5,0,1,0)
+		BlockLine.Size = UDim2.new(1,-15,0,1)
+		BlockLine.BackgroundColor3 = Compkiller.Colors.LineColor
+		BlockLine.BorderSizePixel = 0
 
-		if Clone:IsA("Model") then
-			CF, Size = Clone:GetBoundingBox()
-		elseif Clone:IsA("BasePart") then
-			CF = Clone.CFrame
-			Size = Clone.Size
-		else
-			return
-		end
+		Viewport.Parent = ViewportHolder
+		Viewport.Position = UDim2.new(0,0,0,25)
+		Viewport.Size = UDim2.new(1,-10,0,150)
+		Viewport.BackgroundColor3 = Color3.fromRGB(255,0,0)
+		Viewport.BorderSizePixel = 0
 
-		local Distance = math.max(Size.X, Size.Y, Size.Z) * 2
+		print("[Viewport] 7")
 
-		Camera.CFrame =
-			CFrame.new(
-				CF.Position + Vector3.new(0, Size.Y * 0.25, Distance),
-				CF.Position
-			)
-	end
+		Corner.Parent = Viewport
 
-	if Config.Model then
-		SetModel(Config.Model)
-	end
+		local Camera = Instance.new("Camera")
+		Camera.Parent = Viewport
+		Viewport.CurrentCamera = Camera
 
-	local RotationConnection
+		local WorldModel = Instance.new("WorldModel")
+		WorldModel.Parent = Viewport
 
-	if Config.Rotation then
-		RotationConnection = RunService.RenderStepped:Connect(function(dt)
-			if CurrentModel then
-				if CurrentModel:IsA("Model") then
-					CurrentModel:PivotTo(
-						CurrentModel:GetPivot()
-						* CFrame.Angles(0, math.rad(25 * dt), 0)
-					)
-				elseif CurrentModel:IsA("BasePart") then
-					CurrentModel.CFrame *= CFrame.Angles(0, math.rad(25 * dt), 0)
-				end
+		print("[Viewport] 8")
+
+		if Config.Model then
+			local Clone = Config.Model:Clone()
+			Clone.Parent = WorldModel
+
+			if Clone:IsA("BasePart") then
+				Camera.CFrame = CFrame.new(
+					Clone.Position + Vector3.new(0,0,15),
+					Clone.Position
+				)
 			end
-		end)
-	end
-
-	local Ret = {}
-
-	function Ret:SetModel(Model)
-		SetModel(Model)
-	end
-
-	function Ret:GetViewport()
-		return Viewport
-	end
-
-	function Ret:GetCamera()
-		return Camera
-	end
-
-	function Ret:SetCamera(CFrameValue)
-		Camera.CFrame = CFrameValue
-	end
-
-	function Ret:Destroy()
-		if RotationConnection then
-			RotationConnection:Disconnect()
 		end
 
-		ViewportHolder:Destroy()
-	end
+		print("[Viewport] 9")
 
-	print("lowend")
-	Ret.Signal = Signal:Connect(function(bool)
-		ViewportHolder.Visible = bool
+		if Signal then
+			Signal:Connect(function(bool)
+				ViewportHolder.Visible = bool
+			end)
+		end
+
+		print("[Viewport] 10")
 	end)
 
-	return Ret
-	end;
+	if not ok then
+		warn("[Viewport ERROR]:", err)
+	end
+end;
     
 	function Args:AddDropdown(Config : Dropdown)
 		Config = Compkiller.__CONFIG(Config,{
