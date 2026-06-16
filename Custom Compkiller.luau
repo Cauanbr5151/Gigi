@@ -5881,41 +5881,35 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 	Camera.Parent = Viewport
 	Viewport.CurrentCamera = Camera
 
-	local WorldModel = Instance.new("WorldModel")
+	local WorldModel = Instance.new("Model")
+	WorldModel.Name = "WorldModel"
 	WorldModel.Parent = Viewport
 
 	local CurrentModel
 
 	local function SetModel(Model)
-		WorldModel:ClearAllChildren()
+    WorldModel:ClearAllChildren()
+    if not Model then return end
+    
+    local Clone = Model:Clone()
+    Clone.Parent = WorldModel  -- continua funcionando igual
 
-		if not Model then
-			return
-		end
+    local CF, Size
+    if Clone:IsA("Model") then
+        CF, Size = Clone:GetBoundingBox()
+    elseif Clone:IsA("BasePart") then
+        CF = Clone.CFrame
+        Size = Clone.Size
+    else
+        return
+    end
 
-		local Clone = Model:Clone()
-		Clone.Parent = WorldModel
-
-		CurrentModel = Clone
-
-		local CF, Size
-
-		if Clone:IsA("Model") then
-			CF, Size = Clone:GetBoundingBox()
-		elseif Clone:IsA("BasePart") then
-			CF = Clone.CFrame
-			Size = Clone.Size
-		else
-			return
-		end
-
-		local Distance = math.max(Size.X, Size.Y, Size.Z) * 2
-
-		Camera.CFrame = CFrame.new(
-			CF.Position + Vector3.new(0, Size.Y * 0.25, Distance),
-			CF.Position
-		)
-	end
+    local Distance = math.max(Size.X, Size.Y, Size.Z) * 2
+    Camera.CFrame = CFrame.new(
+        CF.Position + Vector3.new(0, Size.Y * 0.25, Distance),
+        CF.Position
+    )
+end
 
 	if Config.Model then
 		SetModel(Config.Model)
