@@ -5965,6 +5965,7 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 		ViewportHolder:Destroy()
 	end
 
+	print("lowend")
 	Ret.Signal = Signal:Connect(function(bool)
 		ViewportHolder.Visible = bool
 	end)
